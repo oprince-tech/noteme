@@ -13,3 +13,4 @@ todome [OPTIONS]
 - [ ] create template
 - [ ] test for race conditions
 - [ ] error handling
+- [ ] rm or rmr

@@ -4,3 +4,4 @@ venv
 .eggs
 .tox
 noteme.egg-info
+noteme.md

@@ -1,2 +1,5 @@
 # NOTEME
-- [ ] 1
+- [ ] test
+- [ ] test
+- [x] test
+- [x] test

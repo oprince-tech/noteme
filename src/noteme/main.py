@@ -22,11 +22,14 @@ def write_lines(lines: list[str]) -> None:
 def mark(indicies: list[int]) -> None:
     with open('noteme.md', 'r+') as f:
         lines = f.readlines()
-        for i in indicies:
-            if re.search(r'\[ \]', lines[i]):
-                lines[i] = re.sub(r'\[ \]', '[x]', lines[i])
-            else:
-                lines[i] = re.sub(r'\[x\]', '[ ]', lines[i])
+        try:
+            for i in indicies:
+                if re.search(r'\[ \]', lines[i]):
+                    lines[i] = re.sub(r'\[ \]', '[x]', lines[i])
+                else:
+                    lines[i] = re.sub(r'\[x\]', '[ ]', lines[i])
+        except IndexError as e:
+            print(f'{type(e).__name__}: Entry index out of range: {i}')
         write_lines(lines)
 
 
@@ -39,14 +42,29 @@ def remove(indicies: list[int]) -> None:
     with open('noteme.md', 'r+') as f:
         lines = f.readlines()
         for i in sorted(indicies):
-            del lines[i]
+            try:
+                del lines[i]
+                print(f'Removed entry no. {i}: {lines[i]}')
+            except IndexError as e:
+                print(f'IndexError: {e} ({i})')
         write_lines(lines)
 
 
 def remove_range(x: int, y: int) -> None:
     with open('noteme.md', 'r+') as f:
         lines = f.readlines()
-        del lines[x: y + 1]
+        index_max = max(range(len(lines)))
+        try:
+            if x > index_max:
+                raise IndexError
+            del lines[x: y + 1]
+            if x == index_max:
+                print(f'Removes entries: {x}')
+            else:
+                print(f'Removes entries: {x} through {index_max}')
+        except IndexError as e:
+            read_print_file()
+            sys.exit(f'{type(e).__name__}: Entry index out of range: {x} ')
         write_lines(lines)
 
 
@@ -79,6 +97,7 @@ def main() -> int:
     parser.add_argument(
         '-rmr', '--removerange',
         help='Remove a todo (range)',
+        type=int,
         nargs=2,
     )
     parser.add_argument(
@@ -97,36 +116,27 @@ def main() -> int:
 
     if args.create:
         create_markdown_file()
+
     if args.add:
         try:
             add(args.add)
             print(f'Added {args.add}')
         except ValueError:
             sys.exit('Note must be contained within quotation marks')
+
+    if args.remove and args.removerange:
+        sys.exit(f'Only one of the options (remove or removerange)'
+                 f' can be used at one time')
+
     if args.remove:
-        try:
-            remove(args.remove)
-            print(f'Removed {args.remove}')
-        except IndexError:
-            sys.exit(
-                f'IndexError: Could not remove.'
-                f'{args.remove} does not exist',
-            )
-    if args.removerange:
-        try:
-            remove_range(
-                x=int(args.removerange[0]),
-                y=int(args.removerange[1]),
-            )
-            print(f'Removed {args.removerange[0]} - {args.removerange[1]}')
-        except ValueError:
-            sys.exit(
-                f'ValueError: Ranges must be integers:'
-                f'{args.removerange}',
-            )
+        remove(args.remove)
+
+    if args.removerange and not args.remove:
+        remove_range(x=int(args.removerange[0]),
+                     y=int(args.removerange[1]))
+
     if args.mark:
         mark(args.mark)
-        print(f'Updated {args.mark}')
 
     read_print_file()
 
