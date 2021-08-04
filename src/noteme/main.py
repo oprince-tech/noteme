@@ -1,17 +1,16 @@
 import argparse
 import re
-from pathlib import Path
+import sys
 
 
-def create_markdown_file():
-    p = Path('noteme.md')
-    if not p.is_file():
-        with open('noteme.md', 'w') as f:
-            f.write('# NOTEME\n')
-        print('Creating noteme.md file')
-    else:
-        print('noteme.md already exists')
-
+def create_markdown_file() -> None:
+    try:
+        open('noteme.md', 'x')
+    except FileExistsError:
+        sys.exit('noteme.md already exists')
+    with open('noteme.md', 'w') as f:
+        f.write('# NOTEME\n')
+    print('Creating noteme.md file')
 
 
 def write_lines(lines: list[str]) -> None:
@@ -31,7 +30,7 @@ def mark(indicies: list[int]) -> None:
         write_lines(lines)
 
 
-def append_note(note: str) -> None:
+def add(note: str) -> None:
     with open('noteme.md', 'a') as f:
         f.write(f'- [ ] {note}\n')
 
@@ -52,7 +51,7 @@ def remove_range(x: int, y: int) -> None:
 
 
 def read_print_file() -> None:
-    with open('noteme.md', 'r') as f:
+    with open('noteme.md') as f:
         for i, line in enumerate(f):
             if i == 0:
                 print(f'{line}', end='')
@@ -60,10 +59,10 @@ def read_print_file() -> None:
                 print(f'  {i}\t{line}', end='')
 
 
-def main() -> None:
+def main() -> int:
     parser = argparse.ArgumentParser(
         description='Todo accesible anywhere in your terminal',
-        usage='%(prog)s [options]'
+        usage='%(prog)s [options]',
     )
     parser.add_argument(
         '-a', '--add',
@@ -99,20 +98,40 @@ def main() -> None:
     if args.create:
         create_markdown_file()
     if args.add:
-        append_note(args.add)
-        print(f'Added {args.add}')
+        try:
+            add(args.add)
+            print(f'Added {args.add}')
+        except ValueError:
+            sys.exit('Note must be contained within quotation marks')
     if args.remove:
-        remove(args.remove)
-        print(f'Removed {args.remove}')
+        try:
+            remove(args.remove)
+            print(f'Removed {args.remove}')
+        except IndexError:
+            sys.exit(
+                f'IndexError: Could not remove.'
+                f'{args.remove} does not exist',
+            )
     if args.removerange:
-        remove_range(x=int(args.removerange[0]), y=int(args.removerange[1]))
-        print(f'Removed {args.removerange[0]} - {args.removerange[1]}')
+        try:
+            remove_range(
+                x=int(args.removerange[0]),
+                y=int(args.removerange[1]),
+            )
+            print(f'Removed {args.removerange[0]} - {args.removerange[1]}')
+        except ValueError:
+            sys.exit(
+                f'ValueError: Ranges must be integers:'
+                f'{args.removerange}',
+            )
     if args.mark:
         mark(args.mark)
         print(f'Updated {args.mark}')
 
     read_print_file()
 
+    return 0
+
 
 if __name__ == '__main__':
-    main()
+    exit(main())
