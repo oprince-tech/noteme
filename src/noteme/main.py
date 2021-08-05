@@ -1,6 +1,7 @@
 import argparse
 import re
 import sys
+from datetime import datetime
 
 
 def create_markdown_file() -> None:
@@ -34,17 +35,21 @@ def mark(indicies: list[int]) -> None:
 
 
 def add(note: str) -> None:
+    dt = datetime.now()
+    fdt = dt.strftime('(_%a %m/%d/%y, %H:%M:%S_ )')
+
     with open('noteme.md', 'a') as f:
-        f.write(f'- [ ] {note}\n')
+        f.write(f'- [ ] {fdt} - {note}\n')
 
 
 def remove(indicies: list[int]) -> None:
     with open('noteme.md', 'r+') as f:
         lines = f.readlines()
-        for i in sorted(indicies):
+        for i in sorted(indicies, reverse=True):
             try:
+                ln = lines[i]
                 del lines[i]
-                print(f'Removed entry no. {i}: {lines[i]}')
+                print(f'Removed entry no. {i}: {ln}')
             except IndexError as e:
                 print(f'IndexError: {e} ({i})')
         write_lines(lines)
@@ -74,7 +79,7 @@ def read_print_file() -> None:
             if i == 0:
                 print(f'{line}', end='')
             else:
-                print(f'  {i}\t{line}', end='')
+                print(f'{i}\t{line}', end='')
 
 
 def main() -> int:
@@ -135,7 +140,11 @@ def main() -> int:
         remove_range(x=int(args.removerange[0]),
                      y=int(args.removerange[1]))
 
+    # if args.add and args.mark:
+    #     print(f'{args.add=} {args.mark=}')
+    
     if args.mark:
+        print(args.mark)
         mark(args.mark)
 
     read_print_file()
