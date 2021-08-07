@@ -1,20 +1,22 @@
-# noteme
-### Features
-Ability to CRUD todo markdown file anywhere in terminal
-### Example
-noteme [OPTIONS]
+### Todo
+- [ ] test for race conditions
+- [ ] package init noteme.md file
+- [ ] README.md
+- [ ] add done date
+- [ ] ** for bold (important flag -i)
+- [ ] add ability to mark while appending
+- [ ] turn functionality into todo file templating creator
+### In Progress
+### Completed
 - [x] list (list all todos)
 - [x] add (add a todo)
 - [x] mark
 - [x] remove range
 - [x] create markdown file
-- [ ] create template
-- [ ] test for race conditions
+- [x] create template
 - [x] error handling
 - [x] rm or rmr
-- [ ] package init noteme.md file
-- [ ] README.md
-- [ ] add done date
-- [x] add creation date 
-- [ ] ** for bold (important flag -i)
-- [ ] add ability to mark while appending
+- [x] add creation date
+- [x] parse for 'todo' headline rather than line number
+- [x] TODO / IN PROGRESS / COMPLETED
+- [x] move to completed when marked
