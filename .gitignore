@@ -5,3 +5,9 @@ venv
 .tox
 noteme.egg-info
 noteme.md
+todome.egg-info/
+__pycache__
+.pytest_cache
+.coverage
+htmlcov/
+TODO_bu.md

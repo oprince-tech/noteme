@@ -1,13 +1,14 @@
 ### Todo
 - [ ] test for race conditions
 - [ ] README.md
-- [ ] add done date
 - [ ] ** for bold (important flag -i)
 - [ ] add ability to mark while appending
 - [ ] turn functionality into todo file templating creator
-- [ ] testing
 - [ ] pattern match for (# In progress / ## In Progress / etc)
+- [ ] add done date
 ### In Progress
+- [ ] testing
+- [ ] test for incompatible formats (- [])
 ### Completed
 - [x] list (list all todos)
 - [x] add (add a todo)

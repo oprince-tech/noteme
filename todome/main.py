@@ -16,13 +16,16 @@ def create_markdown_file(path: str) -> None:
 
 
 def write_lines(path: str, lines: list[str]) -> None:
-    with open(f'{path}/TODO.md', 'w') as f:
-        for line in lines:
-            f.write(line)
+    try:
+        with open(f'{path}/TODO.md', 'w') as f:
+            for line in lines:
+                f.write(line)
+    except FileNotFoundError as e:
+         sys.exit(f'{type(e).__name__}: {e}')
 
 
-def mark(entry: str, mark: bool) -> str:
-    if mark:
+def mark(entry: str, add_mark: bool) -> str:
+    if add_mark:
         entry = re.sub(r'\[ \]', '[x]', entry)
     else:
         entry = re.sub(r'\[x\]', '[ ]', entry)
@@ -35,21 +38,30 @@ def add(path: str, note: str) -> None:
     fdt = dt.strftime('(_%a %m/%d/%y, %H:%M:%S_ )')
     entry = f'- [ ] {fdt} - {note}\n'
 
-    with open(f'{path}/TODO.md', 'r+') as f:
-        lines = f.readlines()
     try:
+        with open(f'{path}/TODO.md', 'r+') as f:
+            lines = f.readlines()
         in_progress_index = lines.index('### In Progress\n')
         lines.insert(in_progress_index, entry)
         write_lines(path, lines)
         print(f'Added: {note}')
+
+    except FileNotFoundError as e:
+         sys.exit(f'{type(e).__name__}: {e}')
     except ValueError as e:
-        print(f'{type(e).__name__}: {e}')
+        print(f'{type(e).__name__}: File is missing these lines: '
+              f'### Todo, ### In Progress, and ### Completed')
 
 
 def remove(path: str, lns: list[int]) -> None:
-    with open(f'{path}/TODO.md', 'r+') as f:
-        lines = f.readlines()
+    try:
+        with open(f'{path}/TODO.md', 'r+') as f:
+            lines = f.readlines()
+    except FileNotFoundError as e:
+         sys.exit(f'{type(e).__name__}: {e}')
+
     entries = [x for x in lines if x.startswith('-')]
+
     for ln in sorted(lns, reverse=True):
         try:
             entry = entries[ln]
@@ -63,9 +75,9 @@ def remove(path: str, lns: list[int]) -> None:
 
 
 def move(path: str, lns: list[int], complete: bool = False) -> None:
-    with open(f'{path}/TODO.md', 'r+') as f:
-        lines = f.readlines()
     try:
+        with open(f'{path}/TODO.md', 'r+') as f:
+            lines = f.readlines()
         in_progress_index = lines.index('### In Progress\n')
         completed_index = lines.index('### Completed\n')
         entries = [x for x in lines if x.startswith('-')]
@@ -77,12 +89,12 @@ def move(path: str, lns: list[int], complete: bool = False) -> None:
                 if pos > completed_index:
                     # Marked as completed. Unmark and move to 'Todo'
                     del lines[pos]
-                    unmarked_entry = mark(entry, mark=False)
+                    unmarked_entry = mark(entry, add_mark=False)
                     lines.insert(in_progress_index, unmarked_entry)
                 else:
                     # Not marked as completed. Mark and move to 'Completed'
                     del lines[pos]
-                    marked_entry = mark(entry, mark=True)
+                    marked_entry = mark(entry, add_mark=True)
                     lines.append(marked_entry)
             elif pos > in_progress_index and pos < completed_index:
                 # Move to 'Todo'
@@ -95,6 +107,8 @@ def move(path: str, lns: list[int], complete: bool = False) -> None:
 
     except IndexError as e:
         print(f'{type(e).__name__}: Entry index out of range: {ln}')
+    except FileNotFoundError as e:
+         sys.exit(f'{type(e).__name__}: {e}')
 
     write_lines(path, lines)
 
@@ -111,17 +125,17 @@ def read_print_file(path: str) -> None:
                     print(f'{i}\t{line}', end='')
                     i += 1
     except FileNotFoundError as e:
-        print(
-            f'{type(e).__name__}: {e}. '
-            f'Create a new TODO.md file with [todome -c]',
-        )
+         sys.exit(
+             f'{type(e).__name__}: {e}',
+             f'Create a new TODO.md file with [todome -c]',
+             )
 
 
 def virtualenv_check() -> bool:
     return True if sys.prefix != sys.base_prefix else False
 
 
-def main() -> int:
+def parse_args():
     parser = argparse.ArgumentParser(
         description='Todo accesible anywhere in your terminal',
         usage='%(prog)s [options]',
@@ -157,6 +171,10 @@ def main() -> int:
     )
 
     args = parser.parse_args()
+    return args
+
+def main() -> int:
+    args = parse_args()
 
     if virtualenv_check():
         save_path = os.path.dirname(sys.prefix)
@@ -167,10 +185,7 @@ def main() -> int:
         create_markdown_file(save_path)
 
     if args.add:
-        try:
-            add(save_path, args.add)
-        except ValueError:
-            sys.exit('Note must be contained within quotation marks')
+        add(save_path, args.add)
 
     if args.remove:
         remove(save_path, args.remove)
