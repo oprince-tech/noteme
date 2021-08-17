@@ -7,7 +7,6 @@
 - [ ] pattern match for (# In progress / ## In Progress / etc)
 - [ ] add done date
 ### In Progress
-- [ ] testing
 - [ ] test for incompatible formats (- [])
 ### Completed
 - [x] list (list all todos)
@@ -22,4 +21,5 @@
 - [x] parse for 'todo' headline rather than line number
 - [x] TODO / IN PROGRESS / COMPLETED
 - [x] move to completed when marked
-- [x] determine save location (local or gloabl)
+- [x] determine save location (local or global)
+- [x] testing

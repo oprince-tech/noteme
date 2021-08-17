@@ -10,18 +10,17 @@ def create_markdown_file(path: str) -> None:
         open(f'{path}/TODO.md', 'x')
     except FileExistsError:
         sys.exit(f'{path}/TODO.md already exists')
-    with open(f'{path}/TODO.md', 'w') as f:
-        f.write('### Todo\n### In Progress\n### Completed\n')
+    with open(f'{path}/TODO.md', 'a') as f:
+        f.writelines(['### Todo\n', '### In Progress\n', '### Completed\n'])
     print(f'Creating {path}/TODO.md')
 
 
 def write_lines(path: str, lines: list[str]) -> None:
     try:
         with open(f'{path}/TODO.md', 'w') as f:
-            for line in lines:
-                f.write(line)
+            f.writelines(lines)
     except FileNotFoundError as e:
-         sys.exit(f'{type(e).__name__}: {e}')
+        sys.exit(f'{type(e).__name__}: {e}')
 
 
 def mark(entry: str, add_mark: bool) -> str:
@@ -33,7 +32,7 @@ def mark(entry: str, add_mark: bool) -> str:
     return entry
 
 
-def add(path: str, note: str) -> None:
+def add(path: str, note: str) -> list[str]:
     dt = datetime.now()
     fdt = dt.strftime('(_%a %m/%d/%y, %H:%M:%S_ )')
     entry = f'- [ ] {fdt} - {note}\n'
@@ -43,22 +42,25 @@ def add(path: str, note: str) -> None:
             lines = f.readlines()
         in_progress_index = lines.index('### In Progress\n')
         lines.insert(in_progress_index, entry)
-        write_lines(path, lines)
         print(f'Added: {note}')
 
     except FileNotFoundError as e:
-         sys.exit(f'{type(e).__name__}: {e}')
+        sys.exit(f'{type(e).__name__}: {e}')
     except ValueError as e:
-        print(f'{type(e).__name__}: File is missing these lines: '
-              f'### Todo, ### In Progress, and ### Completed')
+        sys.exit(
+            f'{type(e).__name__}: File is missing these lines: ' +
+            '### Todo, ### In Progress, and ### Completed',
+        )
+
+    return lines
 
 
-def remove(path: str, lns: list[int]) -> None:
+def remove(path: str, lns: list[int]) -> list[str]:
     try:
         with open(f'{path}/TODO.md', 'r+') as f:
             lines = f.readlines()
     except FileNotFoundError as e:
-         sys.exit(f'{type(e).__name__}: {e}')
+        sys.exit(f'{type(e).__name__}: {e}')
 
     entries = [x for x in lines if x.startswith('-')]
 
@@ -70,11 +72,12 @@ def remove(path: str, lns: list[int]) -> None:
             del lines[entry_index]
             print(f'Removed entry no. {ln}: {entry}')
         except IndexError as e:
-            print(f'IndexError: {e}: {ln}')
-    write_lines(path, lines)
+            sys.exit(f'{type(e).__name__}: {e}: {ln}')
+
+    return lines
 
 
-def move(path: str, lns: list[int], complete: bool = False) -> None:
+def move(path: str, lns: list[int], complete: bool = False) -> list[str]:
     try:
         with open(f'{path}/TODO.md', 'r+') as f:
             lines = f.readlines()
@@ -105,12 +108,17 @@ def move(path: str, lns: list[int], complete: bool = False) -> None:
                 del lines[pos]
                 lines.insert(completed_index-1, entry)
 
-    except IndexError as e:
-        print(f'{type(e).__name__}: Entry index out of range: {ln}')
     except FileNotFoundError as e:
-         sys.exit(f'{type(e).__name__}: {e}')
+        sys.exit(f'{type(e).__name__}: {e}')
+    except IndexError as e:
+        sys.exit(f'{type(e).__name__}: Entry index out of range: {ln}')
+    except ValueError as e:
+        sys.exit(
+            f'{type(e).__name__}: File is missing these lines: ' +
+            '### Todo, ### In Progress, and ### Completed',
+        )
 
-    write_lines(path, lines)
+    return lines
 
 
 def read_print_file(path: str) -> None:
@@ -125,17 +133,17 @@ def read_print_file(path: str) -> None:
                     print(f'{i}\t{line}', end='')
                     i += 1
     except FileNotFoundError as e:
-         sys.exit(
-             f'{type(e).__name__}: {e}',
-             f'Create a new TODO.md file with [todome -c]',
-             )
+        sys.exit(
+            f'{type(e).__name__}: {e}' +
+            'Create a new TODO.md file with [todome -c]',
+        )
 
 
 def virtualenv_check() -> bool:
     return True if sys.prefix != sys.base_prefix else False
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description='Todo accesible anywhere in your terminal',
         usage='%(prog)s [options]',
@@ -173,6 +181,7 @@ def parse_args():
     args = parser.parse_args()
     return args
 
+
 def main() -> int:
     args = parse_args()
 
@@ -185,16 +194,20 @@ def main() -> int:
         create_markdown_file(save_path)
 
     if args.add:
-        add(save_path, args.add)
+        lines = add(save_path, args.add)
+        write_lines(save_path, lines)
 
     if args.remove:
-        remove(save_path, args.remove)
+        lines = remove(save_path, args.remove)
+        write_lines(save_path, lines)
 
     if args.mark:
-        move(save_path, args.mark, True)
+        lines = move(save_path, args.mark, True)
+        write_lines(save_path, lines)
 
     if args.progress:
-        move(save_path, args.progress)
+        lines = move(save_path, args.progress)
+        write_lines(save_path, lines)
 
     read_print_file(save_path)
 
