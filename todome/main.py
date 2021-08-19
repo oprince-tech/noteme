@@ -81,8 +81,20 @@ def move(path: str, lns: list[int], complete: bool = False) -> list[str]:
     try:
         with open(f'{path}/TODO.md', 'r+') as f:
             lines = f.readlines()
-        in_progress_index = lines.index('### In Progress\n')
-        completed_index = lines.index('### Completed\n')
+
+        try:
+            in_progress_reg = re.compile('#{1,} In Progress\n')
+            completed_reg = re.compile('#{1,} Completed\n')
+            r1 = list(filter(in_progress_reg.match, lines))
+            r2 = list(filter(completed_reg.match, lines))
+            in_progress_index = lines.index(r1[0])
+            completed_index = lines.index(r2[0])
+        except IndexError as e:
+            sys.exit(
+                f'{type(e).__name__}: File is missing these lines: ' +
+                '### Todo, ### In Progress, and ### Completed',
+            )
+
         entries = [x for x in lines if x.startswith('-')]
         for ln in lns:
             entry = entries[ln]
@@ -112,11 +124,6 @@ def move(path: str, lns: list[int], complete: bool = False) -> list[str]:
         sys.exit(f'{type(e).__name__}: {e}')
     except IndexError as e:
         sys.exit(f'{type(e).__name__}: Entry index out of range: {ln}')
-    except ValueError as e:
-        sys.exit(
-            f'{type(e).__name__}: File is missing these lines: ' +
-            '### Todo, ### In Progress, and ### Completed',
-        )
 
     return lines
 

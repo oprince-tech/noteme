@@ -273,7 +273,7 @@ def test_move_IndexError_SystemExit(tmpdir):
             move(tmpdir, [100], True)
 
 
-def test_move_ValueError_SystemExit(tmpdir):
+def test_move_missing_headers_SystemExit(tmpdir):
     with mock.patch('todome.main.open', mock.mock_open(read_data='')):
         with pytest.raises(SystemExit):
             move(tmpdir, [1], False)

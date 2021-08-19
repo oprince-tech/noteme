@@ -4,11 +4,10 @@
 - [ ] ** for bold (important flag -i)
 - [ ] add ability to mark while appending
 - [ ] turn functionality into todo file templating creator
-- [ ] pattern match for (# In progress / ## In Progress / etc)
 - [ ] add done date
-### In Progress
+## In Progress
 - [ ] test for incompatible formats (- [])
-### Completed
+## Completed
 - [x] list (list all todos)
 - [x] add (add a todo)
 - [x] mark
@@ -23,3 +22,4 @@
 - [x] move to completed when marked
 - [x] determine save location (local or global)
 - [x] testing
+- [x] pattern match for (# In progress / ## In Progress / etc)
