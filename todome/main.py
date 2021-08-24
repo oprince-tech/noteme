@@ -128,6 +128,22 @@ def move(path: str, lns: list[int], complete: bool = False) -> list[str]:
     return lines
 
 
+def md_elements_to_unicode(line: str) -> str:
+    occurences = re.findall(r'\*\*', line)
+    if occurences:
+        for i in range(len(occurences)):
+            if i == len(occurences)-1:
+                # escape unmatched markdown
+                continue
+            elif i % 2 == 0:
+                line = re.sub(r'\*\*', '\033[1m', line, count=1)
+            else:
+                line = re.sub(r'\*\*', '\033[0m', line, count=1)
+        return line
+    else:
+        raise SyntaxError
+
+
 def read_print_file(path: str) -> None:
     try:
         print(f'{path}/TODO.md')
@@ -135,8 +151,12 @@ def read_print_file(path: str) -> None:
             i = 0
             for line in f:
                 if line[0] == '#' or len(line.strip()) == 0:
-                    print(f'{line}', end='')
+                    print(f'\033[4m{line}\033[0m', end='')
                 else:
+                    try:
+                        line = md_elements_to_unicode(line)
+                    except SyntaxError:
+                        pass
                     print(f'{i}\t{line}', end='')
                     i += 1
     except FileNotFoundError as e:
