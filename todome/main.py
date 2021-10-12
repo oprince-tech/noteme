@@ -2,7 +2,6 @@ import argparse
 import os
 import re
 import sys
-from datetime import datetime
 
 
 def create_markdown_file(path: str) -> None:
@@ -33,9 +32,7 @@ def mark(entry: str, add_mark: bool) -> str:
 
 
 def add(path: str, note: str) -> list[str]:
-    dt = datetime.now()
-    fdt = dt.strftime('(_%a %m/%d/%y, %H:%M:%S_ )')
-    entry = f'- [ ] {fdt} - {note}\n'
+    entry = f'- [ ] {note}\n'
 
     try:
         with open(f'{path}/TODO.md', 'r+') as f:
@@ -157,7 +154,7 @@ def read_print_file(path: str) -> None:
                         line = md_elements_to_unicode(line)
                     except SyntaxError:
                         pass
-                    print(f'{i}\t{line}', end='')
+                    print(f'{i:<4}{line}', end='')
                     i += 1
     except FileNotFoundError as e:
         sys.exit(

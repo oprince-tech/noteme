@@ -1,6 +1,5 @@
 import argparse
 import sys
-from datetime import datetime
 from unittest import mock
 
 import pytest
@@ -121,19 +120,6 @@ def test_write_lines_FileNotFound_SystemExit():
 def test_add_FileNotFound_SystemExit(tmpdir):
     with pytest.raises(SystemExit):
         add(tmpdir, 'test')
-
-
-def test_add_lines_formatting(tmpdir):
-    with mock.patch('todome.main.datetime') as mock_dt:
-        mock_dt.now.return_value = datetime(2021, 1, 1)
-        create_markdown_file(tmpdir)
-        lines = add(tmpdir, 'test')
-        assert lines == [
-            '### Todo\n',
-            '- [ ] (_Fri 01/01/21, 00:00:00_ ) - test\n',
-            '### In Progress\n',
-            '### Completed\n',
-        ]
 
 
 def test_add_lines_missing_categories(tmpdir):
