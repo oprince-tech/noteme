@@ -2,6 +2,7 @@ import argparse
 import os
 import re
 import sys
+from typing import List
 
 
 def create_markdown_file(path: str) -> None:
@@ -14,7 +15,7 @@ def create_markdown_file(path: str) -> None:
     print(f'Creating {path}/TODO.md')
 
 
-def write_lines(path: str, lines: list[str]) -> None:
+def write_lines(path: str, lines: List[str]) -> None:
     try:
         with open(f'{path}/TODO.md', 'w') as f:
             f.writelines(lines)
@@ -31,7 +32,7 @@ def mark(entry: str, add_mark: bool) -> str:
     return entry
 
 
-def add(path: str, note: str) -> list[str]:
+def add(path: str, note: str) -> List[str]:
     entry = f'- [ ] {note}\n'
 
     try:
@@ -52,7 +53,7 @@ def add(path: str, note: str) -> list[str]:
     return lines
 
 
-def remove(path: str, lns: list[int]) -> list[str]:
+def remove(path: str, lns: List[int]) -> List[str]:
     try:
         with open(f'{path}/TODO.md', 'r+') as f:
             lines = f.readlines()
@@ -74,7 +75,7 @@ def remove(path: str, lns: list[int]) -> list[str]:
     return lines
 
 
-def move(path: str, lns: list[int], complete: bool = False) -> list[str]:
+def move(path: str, lns: List[int], complete: bool = False) -> List[str]:
     try:
         with open(f'{path}/TODO.md', 'r+') as f:
             lines = f.readlines()
@@ -128,12 +129,14 @@ def move(path: str, lns: list[int], complete: bool = False) -> list[str]:
 def md_elements_to_unicode(line: str) -> str:
     occurences = re.findall(r'\*\*', line)
     if occurences:
+        print(occurences)
         for i in range(len(occurences)):
-            if i == len(occurences)-1:
-                # escape unmatched markdown
-                continue
-            elif i % 2 == 0:
-                line = re.sub(r'\*\*', '\033[1m', line, count=1)
+            if i % 2 == 0:
+                try:
+                    occurences[i + 1]
+                    line = re.sub(r'\*\*', '\033[1m', line, count=1)
+                except IndexError:
+                    continue
             else:
                 line = re.sub(r'\*\*', '\033[0m', line, count=1)
         return line
@@ -239,4 +242,4 @@ def main() -> int:
 
 
 if __name__ == '__main__':
-    exit(main())
+    exit(main())  # pragma: no cover

@@ -8,6 +8,7 @@ from todome.main import add
 from todome.main import create_markdown_file
 from todome.main import main
 from todome.main import mark
+from todome.main import md_elements_to_unicode
 from todome.main import move
 from todome.main import parse_args
 from todome.main import read_print_file
@@ -30,12 +31,14 @@ def test_args_return_type():
 
 @pytest.fixture
 def mock_venv_false(monkeypatch):
-    monkeypatch.setattr(sys, 'prefix', '/home/oli/.pyenv/versions/3.9.6')
+    monkeypatch.setattr(sys, 'prefix', '/usr')
+    monkeypatch.setattr(sys, 'base_prefix', '/usr')
 
 
 @pytest.fixture
 def mock_venv_true(monkeypatch):
-    monkeypatch.setattr(sys, 'prefix', '/home/oli/projects/todome/venv')
+    monkeypatch.setattr(sys, 'prefix', '/todome/venv')
+    monkeypatch.setattr(sys, 'base_prefix', '/usr')
 
 
 def test_virtualenv_false(mock_venv_false):
@@ -78,14 +81,6 @@ def test_mark_fail(entry, add_mark, expected):
     assert mark(entry, add_mark) != expected
 
 
-def test_create_markdown_file(tmpdir):
-    # Should not FileExistsError with tmp file
-    try:
-        create_markdown_file(tmpdir)
-    except FileExistsError:
-        pytest.fail('Did not create (FileExistsError)')
-
-
 def test_create_markdown_file_write(tmpdir):
     file = tmpdir.join('TODO.md')
     create_markdown_file(tmpdir)
@@ -126,6 +121,20 @@ def test_add_lines_missing_categories(tmpdir):
     with pytest.raises(SystemExit):
         with mock.patch('todome.main.open', mock.mock_open(read_data='')):
             add(tmpdir, ['test'])
+
+
+@mock.patch(
+    'todome.main.open',
+    mock.mock_open(read_data='###Todo\n### In Progress\n### Completed'),
+)
+def test_add(tmpdir):
+    lines = add(tmpdir, 'New line')
+    assert lines == [
+        '###Todo\n',
+        '- [ ] New line\n',
+        '### In Progress\n',
+        '### Completed',
+    ]
 
 
 @mock.patch(
@@ -265,6 +274,16 @@ def test_move_missing_headers_SystemExit(tmpdir):
             move(tmpdir, [1], False)
 
 
+def test_md_elements_to_unicode():
+    line = md_elements_to_unicode('**test one instance**')
+    assert line == '\033[1mtest one instance\033[0m'
+
+
+def test_md_elements_to_unicode_mismatch():
+    line = md_elements_to_unicode('**test one** instance**')
+    assert line == '\033[1mtest one\033[0m instance**'
+
+
 def test_read_print_file(tmpdir):
     data = '### Todo\n' + \
            '- [ ] (_Fri 01/01/21, 00:00:00_ ) - test0\n' + \
@@ -305,5 +324,31 @@ def test_main_venv_True(tmpdir, mock_virtualenv_bool):
     ),
 )
 @mock.patch('todome.main.open', mock.mock_open(read_data=''))
-def test_main_venv_False(tmpdir, mock_virtualenv_bool):
+def test_main_venv_False(mock_virtualenv_bool, mock_args, tmpdir):
+    main()
+
+
+@mock.patch('todome.main.virtualenv_check', return_value=False)
+@mock.patch('todome.main.create_markdown_file')
+@mock.patch('todome.main.add')
+@mock.patch('todome.main.remove')
+@mock.patch('todome.main.move')
+@mock.patch(
+    'todome.main.parse_args', return_value=argparse.Namespace(
+        add='test',
+        remove=1,
+        mark=1,
+        create=True,
+        progress=[1],
+    ),
+)
+@mock.patch('todome.main.open', mock.mock_open(read_data=''))
+def test_main_full_args(
+    mock_virtualenv_bool,
+    mock_create,
+    mock_add,
+    mock_remove,
+    mock_move,
+    tmpdir,
+):
     main()
